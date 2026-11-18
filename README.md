@@ -95,4 +95,4 @@ For related demonstrations of HTTP methods and routing, see [webdev-razor-http-m
 
 ## License and attribution
 
-Created for university and college Web Application Development modules. Free for educational use.
+Created for university and college Web Development modules. Free for educational use.
