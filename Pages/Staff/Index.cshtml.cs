@@ -1,37 +1,37 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
+using MyRazorApp.Data;
 
 namespace MyRazorApp.Pages.Staff;
 
 public class IndexModel : PageModel
 {
-    // -------------------------------------------------------------------------
-    // LAB 2 - STEP 01: Database Integration
-    // -------------------------------------------------------------------------
-    // In Step 01, you will:
-    // 1. Install Microsoft.EntityFrameworkCore.Sqlite
-    // 2. Create Models/Staff.cs and Data/ApplicationDbContext.cs
-    // 3. Register ApplicationDbContext in Program.cs
-    // 4. Inject ApplicationDbContext via constructor dependency injection:
-    //
-    //    private readonly ApplicationDbContext _context;
-    //
-    //    public IndexModel(ApplicationDbContext context)
-    //    {
-    //        _context = context;
-    //    }
-    //
-    //    public List<Models.Staff> StaffMembers { get; set; } = [];
-    //    public int ActiveCount { get; set; }
-    //
-    //    public async Task OnGetAsync()
-    //    {
-    //        StaffMembers = await _context.Staff.ToListAsync();
-    //        ActiveCount = StaffMembers.Count(s => s.IsActive == 1);
-    //    }
-    // -------------------------------------------------------------------------
+    private readonly ApplicationDbContext _context;
 
-    public void OnGet()
+    public IndexModel(ApplicationDbContext context)
     {
-        // Executes when student visits /Staff or /Staff/Index before Step 01 is completed
+        _context = context;
+    }
+
+    public List<Models.Staff> StaffMembers { get; set; } = [];
+    public int ActiveCount { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? SearchTerm { get; set; }
+
+    public async Task OnGetAsync()
+    {
+        var query = _context.Staff.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.Trim().ToLower();
+            query = query.Where(s =>
+                s.LastName.ToLower().Contains(term) ||
+                s.FirstName.ToLower().Contains(term));
+        }
+        StaffMembers = await query.ToListAsync();
+
+        ActiveCount = StaffMembers.Count(s => s.IsActive == 1);
     }
 }

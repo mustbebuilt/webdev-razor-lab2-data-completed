@@ -1,285 +1,98 @@
-# Lab 2: Data & Databases in ASP.NET Core Razor Pages (Starter Application)
+# Lab 2: Data & Databases in ASP.NET Core Razor Pages
 
 [![.NET 10](https://img.shields.io/badge/.NET-10.0-512bd4.svg)](https://dotnet.microsoft.com/)
 [![Razor Pages](https://img.shields.io/badge/ASP.NET%20Core-Razor%20Pages-0284c7.svg)](https://learn.microsoft.com/aspnet/core/razor-pages/)
 [![SQLite](https://img.shields.io/badge/Database-SQLite-003B57.svg)](https://www.sqlite.org/)
-[![EF Core](https://img.shields.io/badge/ORM-Entity%20Framework%20Core-68217a.svg)](https://learn.microsoft.com/ef/core/)
+[![EF Core](https://img.shields.io/badge/ORM-Entity%20Framework%20Core-68217a.svg)](https://learn.microsoft.com/ef/)
 
-Welcome to **Lab 2**! This repository is the starter template designed for students to fork and clone. 
+This is the **completed application** for Lab 2. It demonstrates an ASP.NET Core Razor Pages app that reads staff records from SQLite through Entity Framework Core (EF Core), searches records with LINQ, and displays individual staff details by route parameter.
 
-In this lab, you will extend a clean ASP.NET Core Razor Pages web application into a dynamic, data-driven system by connecting a local SQLite database using **Entity Framework Core (EF Core)**, executing LINQ queries, passing route parameters to dedicated detail pages, and building dynamic search filters.
+> **Tutorial:** The step-by-step lab instructions are available in the [GitHub Wiki](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki).
 
-> 📖 **Full Tutorial Guide**: Follow the step-by-step instructions in the [GitHub Wiki Guide](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki).
+## Requirements
 
----
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- [Visual Studio Code](https://code.visualstudio.com/) or another editor (optional)
+- SQLite CLI (optional, for inspecting the database or running SQL scripts)
 
-## 📋 Table of Contents
+Check the installed SDK:
 
-- [Requirements & Prerequisites](#-requirements--prerequisites)
-- [Quick Start](#-quick-start)
-- [Static Files](#-static-files)
-- [Lab Tutorial Syllabus](#-lab-tutorial-syllabus)
-- [Step-by-Step Instructions](#-step-by-step-instructions)
-- [Repository Structure](#-repository-structure)
-- [Database Schema & Seed Data](#-database-schema--seed-data)
-- [Companion Demos: HTTP Methods & Routing](#-companion-demos-http-methods--routing)
-- [License & Attribution](#-license--attribution)
-
----
-
-## 🛠 Requirements & Prerequisites
-
-Before starting this lab, ensure you have:
-
-- **.NET 10 SDK** (or .NET 8.0+) - [Download .NET](https://dotnet.microsoft.com/download)
-- **Visual Studio Code** - [Download VS Code](https://code.visualstudio.com/)
-  - Recommended extensions: *C# Dev Kit*, *SQLite Viewer* (optional)
-- **SQLite 3 CLI** (pre-installed on macOS/Linux; available via `winget install SQLite.SQLite` or package manager on Windows)
-- Familiarity with Lab 1 concepts (Razor syntax, layouts, PageModels, and Tag Helpers).
-
-Verify your installed .NET SDK version:
 ```bash
 dotnet --version
 ```
 
----
+## Run the application
 
-## 🚀 Quick Start
-
-### 1. Fork & Clone
-
-Fork this repository to your own GitHub account, then clone it to your development machine:
-
-```bash
-git clone https://github.com/<YOUR-USERNAME>/webdev-razor-lab2-data.git
-cd webdev-razor-lab2-data
-```
-
-### 2. Run the Starter Application
-
-Restore dependencies and launch the local Kestrel development server:
+The repository includes the seeded SQLite database at `Data/staff.db`. From the project root, run:
 
 ```bash
 dotnet run
 ```
 
-Open your browser to the local URL displayed in the terminal (typically `http://localhost:5000` or `https://localhost:5001`).
+Open the local URL printed by the application. The database connection is configured in `appsettings.json` and uses `Data/staff.db`.
 
----
-
-## 🗂 Static Files
-
-The application serves files from `wwwroot` using `app.MapStaticAssets()` and `.WithStaticAssets()` in `Program.cs`. You can use the static-file middleware as an alternative: replace those calls with `app.UseStaticFiles()` before mapping Razor Pages:
-
-```csharp
-app.UseStaticFiles();
-app.MapRazorPages();
-```
-
----
-
-## 📚 Lab Tutorial Syllabus
-
-The tutorial instructions are published in the project wiki:
-
-| Step | Topic | Description |
-|:---:|:---|:---|
-| **01** | [SQLite Database Integration](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki/01.-SQLite-Database-Integration) | Install EF Core, seed `Data/staff.db`, create `Staff.cs` & `ApplicationDbContext.cs`, and list staff. |
-| **02** | [MSSQL Database Integration](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki/02.-MSSQL-Database-Integration) | *(Alternative)* Learn how EF Core connects to Microsoft SQL Server / Azure SQL. |
-| **03** | [Route Parameters & Details Page](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki/03.-Data-Routing-and-Details) | Pass `asp-route-id`, constrain routes with `@page "{id:int}"`, and display single records. |
-| **04** | [Searching Data with LINQ](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki/04.-Searching-the-Data) | GET form model binding (`[BindProperty(SupportsGet = true)]`) and dynamic deferred LINQ filtering. |
-
----
-
-## 📝 Step-by-Step Instructions
-
-### Step 1: Create Your Local SQLite Database
-
-Students create the database themselves using the provided SQL script:
+To inspect the sample records with the SQLite CLI:
 
 ```bash
-# Run from the project root directory
-sqlite3 Data/staff.db < resources/staff-sqlite.sql
+sqlite3 Data/staff.db "SELECT staff_id, first_name, last_name, department, salary, is_active FROM staff;"
 ```
 
-Verify that the `staff` table has been seeded with 6 employees:
-```bash
-sqlite3 Data/staff.db "SELECT staff_id, first_name, last_name, department, salary FROM staff;"
-```
+The seed script for creating a fresh database is `resources/staff-sqlite.sql`. The application itself is configured for SQLite; `resources/staff-mssql.sql` is provided as a reference for the optional MSSQL tutorial.
 
-### Step 2: Install EF Core SQLite Provider
+## What the application demonstrates
 
-```bash
-dotnet add package Microsoft.EntityFrameworkCore.Sqlite
-```
+- EF Core SQLite configuration and the `Staff` entity mapped to the `staff` table.
+- A staff directory loaded asynchronously from the database.
+- Search by first name or last name using an HTTP GET form and a deferred LINQ query.
+- A staff details page addressed by integer route parameter (`/Staff/Details/{id}`).
+- Display of staff contact, job, salary, and active-status information.
 
-### Step 3: Create the Entity Model (`Models/Staff.cs`)
+### Pages
 
-Create `Models/Staff.cs` representing the `staff` database table:
+| Page | Route | Description |
+|---|---|---|
+| Home | `/` | Overview and links to the completed lab features. |
+| Staff Directory | `/Staff` | Search staff by first name or last name and open a staff record. |
+| Staff Details | `/Staff/Details/{id}` | View an individual staff record. |
+| News | `/News` | Lab announcement. |
+| Privacy | `/Privacy` | Privacy information. |
 
-```csharp
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+## Sample data
 
-namespace MyRazorApp.Models;
+The supplied SQLite database contains six sample staff records across Engineering, Human Resources, Finance, Marketing, and Sales. To inspect or recreate the schema and sample data, see [`resources/staff-sqlite.sql`](resources/staff-sqlite.sql).
 
-public class Staff
-{
-    [Key]
-    [Column("staff_id")]
-    public int StaffId { get; set; }
-
-    [Column("first_name")]
-    public string FirstName { get; set; } = string.Empty;
-
-    [Column("last_name")]
-    public string LastName { get; set; } = string.Empty;
-
-    [Column("email")]
-    public string Email { get; set; } = string.Empty;
-
-    [Column("department")]
-    public string Department { get; set; } = string.Empty;
-
-    [Column("job_title")]
-    public string JobTitle { get; set; } = string.Empty;
-
-    [Column("hire_date")]
-    public string HireDate { get; set; } = string.Empty;
-
-    [Column("salary")]
-    public double Salary { get; set; }
-
-    [Column("is_active")]
-    public int IsActive { get; set; } // 0 = Inactive, 1 = Active
-}
-```
-
-### Step 4: Create the Database Context (`Data/ApplicationDbContext.cs`)
-
-Create `Data/ApplicationDbContext.cs`:
-
-```csharp
-using Microsoft.EntityFrameworkCore;
-using MyRazorApp.Models;
-
-namespace MyRazorApp.Data;
-
-public class ApplicationDbContext : DbContext
-{
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options) { }
-
-    public DbSet<Staff> Staff { get; set; } = null!;
-}
-```
-
-### Step 5: Register DbContext in `Program.cs`
-
-In `Program.cs`, add the following before `builder.Build()`:
-
-```csharp
-using Microsoft.EntityFrameworkCore;
-using MyRazorApp.Data;
-
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-```
-
-### Step 6: Connect `Pages/Staff/Index.cshtml` to SQLite
-
-Inject `ApplicationDbContext` into `Pages/Staff/Index.cshtml.cs`:
-
-```csharp
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MyRazorApp.Data;
-using MyRazorApp.Models;
-
-namespace MyRazorApp.Pages.Staff;
-
-public class IndexModel : PageModel
-{
-    private readonly ApplicationDbContext _context;
-
-    public IndexModel(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
-    public List<Models.Staff> StaffMembers { get; set; } = [];
-    public int ActiveCount { get; set; }
-
-    public async Task OnGetAsync()
-    {
-        StaffMembers = await _context.Staff.ToListAsync();
-        ActiveCount = StaffMembers.Count(s => s.IsActive == 1);
-    }
-}
-```
-
-Then update `Pages/Staff/Index.cshtml` to iterate over `@Model.StaffMembers` using `@foreach`.
-
----
-
-## 📁 Repository Structure
+## Repository structure
 
 ```text
-├── MyRazorApp.csproj            # .NET 10 project definition
-├── Program.cs                   # Application entry point, middleware, DI services
-├── appsettings.json             # Configuration including SQLite connection string
-├── appsettings.Development.json # Development environment settings
 ├── Data/
-│   ├── README.md                # Guidance for student database creation
-│   └── (staff.db)               # Created locally by students in Step 01
+│   ├── ApplicationDbContext.cs
+│   └── staff.db
 ├── Models/
-│   └── README.md                # Reserved for Staff.cs entity model
+│   └── Staff.cs
 ├── Pages/
-│   ├── _ViewImports.cshtml      # Global TagHelpers and namespaces
-│   ├── _ViewStart.cshtml        # Default layout assignment
-│   ├── Index.cshtml/.cs         # Student dashboard and lab roadmap
-│   ├── News.cshtml/.cs          # News announcements page
-│   ├── Privacy.cshtml/.cs       # Privacy statement
-│   ├── Error.cshtml/.cs         # Error handler
-│   ├── Shared/
-│   │   └── _Layout.cshtml       # Master responsive layout template
+│   ├── Index.cshtml                 # Home page
 │   └── Staff/
-│       └── Index.cshtml/.cs     # Staff Directory starter (Target for Steps 01 & 04)
+│       ├── Index.cshtml             # Searchable staff directory
+│       └── Details.cshtml           # Individual staff record
 ├── resources/
-│   ├── README.md                # Details on database seed files
-│   ├── staff-sqlite.sql         # SQLite DDL and 6 seed records
-│   └── staff-mssql.sql          # Microsoft SQL Server DDL and seed records
-├── docs/                        # Tutorial documentation (mirrored in Wiki)
+│   ├── staff-sqlite.sql             # SQLite schema and sample data
+│   └── staff-mssql.sql              # MSSQL alternative reference
 └── wwwroot/
-    ├── css/site.css             # Vanilla CSS design system
-    ├── js/site.js               # Client JavaScript
-    └── favicon.ico              # App favicon
+    ├── css/site.css
+    └── js/site.js
 ```
 
----
+## Lab topics
 
-## 🗄 Database Schema & Seed Data
+The [GitHub Wiki](https://github.com/mustbebuilt/webdev-razor-lab2-data/wiki) covers:
 
-The sample company staff dataset features 6 employee records across Engineering, HR, Finance, Marketing, and Sales:
+1. SQLite database integration with EF Core.
+2. MSSQL database integration as an alternative.
+3. Route parameters and a staff details page.
+4. Searching data with LINQ and GET model binding.
 
-| Staff ID | Full Name | Department | Job Title | Salary | Active? |
-|:---:|:---|:---|:---|---:|:---:|
-| 1 | Alice Johnson | Engineering | Engineering Manager | £55,000 | Yes |
-| 2 | Brian Lee | Engineering | Senior Developer | £52,000 | Yes |
-| 3 | Carla Gomez | Human Resources | HR Specialist | £48,000 | No |
-| 4 | David Smith | Finance | Financial Analyst | £55,000 | Yes |
-| 5 | Emma Watson | Marketing | Marketing Director | £60,000 | Yes |
-| 6 | Frank Wright | Sales | Account Executive | £45,000 | Yes |
+For related demonstrations of HTTP methods and routing, see [webdev-razor-http-methods](https://github.com/mustbebuilt/webdev-razor-http-methods).
 
----
+## License and attribution
 
-## 💡 Companion Demos: HTTP Methods & Routing
-
-For interactive demos exploring GET query strings, route parameters vs query strings, and POST with the Post-Redirect-Get (PRG) pattern, see the companion repository:  
-👉 [webdev-razor-http-methods](https://github.com/mustbebuilt/webdev-razor-http-methods)
-
----
-
-## 📄 License & Attribution
-
-Created for university/college Web Application Development modules. Free for educational use.
+Created for university and college Web Application Development modules. Free for educational use.
